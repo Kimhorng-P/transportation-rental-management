@@ -1,0 +1,70 @@
+services:
+
+  api-gateway:
+    build: ./api-gateway
+    env_file: ./api-gateway/.env
+    environment:
+      PORT: "3000"
+      REGISTRATION_SERVICE_URL: http://registration-service:5001
+      LOGIN_SERVICE_URL: http://login-service:5002
+      CAR_SERVICE_URL: http://car-service:5003
+      AVAILABILITY_SERVICE_URL: http://availability-service:5004
+      BOOKING_SERVICE_URL: http://booking-service:5005
+      RENTAL_SERVICE_URL: http://rental-service:5006
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  registration-service:
+    build: ./registration-service
+    env_file: ./registration-service/.env
+    environment:
+      PORT: "5001"
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+  login-service:
+    build: ./login-service
+    env_file: ./login-service/.env
+    environment:
+      PORT: "5002"
+    ports:
+      - "5002:5002"
+    restart: unless-stopped
+
+  car-service:
+    build: ./car-service
+    env_file: ./car-service/.env
+    environment:
+      PORT: "5003"
+    ports:
+      - "5003:5003"
+    restart: unless-stopped
+
+  availability-service:
+    build: ./availability-service
+    env_file: ./availability-service/.env
+    environment:
+      PORT: "5004"
+    ports:
+      - "5004:5004"
+    restart: unless-stopped
+
+  booking-service:
+    build: ./booking-service
+    env_file: ./booking-service/.env
+    environment:
+      PORT: "5005"
+    ports:
+      - "5005:5005"
+    restart: unless-stopped
+    
+  rental-service:
+    build: ./rental-service
+    env_file: ./rental-service/.env
+    environment:
+      PORT: "5006"
+    ports:
+      - "5006:5006"
+    restart: unless-stopped
