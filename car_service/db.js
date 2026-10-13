@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const Car = mongoose.model("Car", carSchema, "cars");
-module.export = { connectDB, Car, Booking }
 
 const carSchema = new mongoose.Schema(
   {
@@ -47,9 +45,25 @@ const carSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["AVAILABLE", "BOOKED", "RENTED", "MAINTENANCE"],
-      default: "AVAILABLE"
+      enum: ["ACTIVE", "MAINTENANCE", "ARCHIVED"],
+      default: "ACTIVE"
     }
   },
   { timestamps: true }
 );
+
+// 2. Create the model after defining the schema
+const Car = mongoose.model("Car", carSchema, "cars");
+
+// 3. Connect to MongoDB
+async function connectDB() {
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is missing");
+  }
+
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log("MongoDB connected");
+}
+
+// 4. Export the connection function and model
+module.exports = { connectDB, Car };

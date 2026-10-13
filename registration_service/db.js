@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const User = mongoose.model("User", userSchema, "users");
-module.export = { connectDB, User }
 
 const userSchema = new mongoose.Schema(
   {
@@ -26,9 +24,22 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["CUSTOMER", "ADMIN"],
-      default: "CUSTOMER"
+      enum: ["user", "admin"],
+      default: "user"
     }
   },
   { timestamps: true }
 );
+
+const User = mongoose.model("User", userSchema, "users");
+
+async function connectDB() {
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is missing");
+  }
+
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log("MongoDB connected");
+}
+
+module.exports = { connectDB, User }

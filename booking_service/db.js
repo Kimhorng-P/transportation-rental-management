@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const Booking = mongoose.model("Booking", bookingSchema, "bookings");
-module.export = { connectDB, Car, Booking }
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -39,18 +37,34 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["CONFIRMED", "CANCELLED", "ACTIVE", "COMPLETED"],
+      enum: ["CONFIRMED", "CANCELLED"],
       default: "CONFIRMED"
     }
   },
   { timestamps: true }
 );
 
-// Only one confirmed booking per car
-bookingSchema.index(
-  { carId: 1 },
-  {
-    unique: true,
-    partialFilterExpression: { status: "CONFIRMED" }
+// Supports queries for a car's bookings
+// This index is not unique and does not prevent date overlaps.
+bookingSchema.index({
+  carId: 1,
+  status: 1,
+  startDate: 1,
+  endDate: 1
+});
+
+// Create the model
+const Booking = mongoose.model("Booking", bookingSchema, "bookings");
+
+// Connect to MongoDB 
+async function connectDB() {
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is missing");
   }
-);
+
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log("MongoDB connected");
+}
+
+// Export the connection function and model
+module.exports = { connectDB, Booking };

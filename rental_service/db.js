@@ -1,7 +1,4 @@
-
 const mongoose = require("mongoose");
-const Rental = mongoose.model("Rental", rentalSchema, "rentals");
-module.export = { connectDB, Car, Booking, Rental }
 
 const rentalSchema = new mongoose.Schema(
   {
@@ -41,3 +38,24 @@ const rentalSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+rentalSchema.index(
+  { carId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: "ACTIVE" }
+  }
+);
+
+const Rental = mongoose.model("Rental", rentalSchema, "rentals");
+
+async function connectDB() {
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is missing");
+  }
+
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log("MongoDB connected");
+}
+
+module.exports = { connectDB, Rental };
