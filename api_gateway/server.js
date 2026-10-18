@@ -26,6 +26,14 @@ const BOOKING_SERVICE =
     process.env.BOOKING_SERVICE_URL ||
     "http://booking_service:5005";
 
+const CAR_SERVICE =
+    process.env.CAR_SERVICE_URL ||
+    "http://car_service:5003";
+
+const RENTAL_SERVICE =
+    process.env.RENTAL_SERVICE_URL ||
+    "http://rental_service:5006";
+
 
 // Handle proxy connection errors
 proxy.on("error", (error, req, res) => {
@@ -87,6 +95,37 @@ app.use("/booking", authToken, (req, res) => {
         target: BOOKING_SERVICE
     });
 });
+
+ // Car Service
+ // GET /cars
+ // GET /cars/:id
+ // POST /cars
+ // PUT /cars/:id
+ // DELETE /cars/:id
+
+app.use("/cars", authToken, (req, res) => {
+    req.url = "/cars" + req.url;
+
+    proxy.web(req, res, {
+        target: CAR_SERVICE
+    });
+});
+
+// Rental Service
+// POST /rentals
+// GET /rentals
+// GET /rentals/my
+// GET /rentals/:id
+// PATCH /rentals/:id/return
+
+app.use("/rentals", authToken, (req, res) => {
+    req.url = "/rentals" + req.url;
+
+    proxy.web(req, res, {
+        target: RENTAL_SERVICE
+    });
+});
+
 
 // Unknown Endpointc
 app.use((req, res) => {
