@@ -5,12 +5,12 @@ services:
     env_file: ./api_gateway/.env
     environment:
       PORT: "3000"
-      REGISTRATION_SERVICE_URL: http://registration_service:5001
-      LOGIN_SERVICE_URL: http://login_service:5002
-      CAR_SERVICE_URL: http://car_service:5003
-      AVAILABILITY_SERVICE_URL: http://availability_service:5004
-      BOOKING_SERVICE_URL: http://booking_service:5005
-      RENTAL_SERVICE_URL: http://rental_service:5006
+      REGISTRATION_SERVICE_URL: ${REGISTRATION_SERVICE_URL:-http://registration_service:5001}
+      LOGIN_SERVICE_URL: ${LOGIN_SERVICE_URL:-http://login_service:5002}
+      CAR_SERVICE_URL: ${CAR_SERVICE_URL:-http://car_service:5003}
+      AVAILABILITY_SERVICE_URL: ${AVAILABILITY_SERVICE_URL:-http://availability_service:5004}
+      BOOKING_SERVICE_URL: ${BOOKING_SERVICE_URL:-http://booking_service:5005}
+      RENTAL_SERVICE_URL: ${RENTAL_SERVICE_URL:-http://rental_service:5006}
     ports:
       - "3000:3000"
     restart: unless-stopped
