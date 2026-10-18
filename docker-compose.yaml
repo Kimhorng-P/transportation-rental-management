@@ -2,7 +2,9 @@ services:
 
   api_gateway:
     build: ./api_gateway
-    env_file: ./api_gateway/.env
+    env_file: 
+      - path: ./api_gateway/.env
+        required: false
     environment:
       PORT: "3000"
       REGISTRATION_SERVICE_URL: ${REGISTRATION_SERVICE_URL:-http://registration_service:5001}
@@ -17,7 +19,9 @@ services:
 
   registration_service:
     build: ./registration_service
-    env_file: ./registration_service/.env
+    env_file: 
+      - path: ./registration_service/.env
+        required: false
     environment:
       PORT: "5001"
     ports:
@@ -26,7 +30,9 @@ services:
 
   login_service:
     build: ./login_service
-    env_file: ./login_service/.env
+    env_file: 
+      - path: ./login_service/.env
+        required: false
     environment:
       PORT: "5002"
     ports:
@@ -35,7 +41,9 @@ services:
 
   car_service:
     build: ./car_service
-    env_file: ./car_service/.env
+    env_file: 
+      - path: ./car_service/.env
+        required: false
     environment:
       PORT: "5003"
     ports:
@@ -44,7 +52,9 @@ services:
 
   availability_service:
     build: ./availability_service
-    env_file: ./availability_service/.env
+    env_file: 
+      - path: ./availability_service/.env
+        required: false
     environment:
       PORT: "5004"
     ports:
@@ -53,7 +63,9 @@ services:
 
   booking_service:
     build: ./booking_service
-    env_file: ./booking_service/.env
+    env_file: 
+      - path: ./booking_service/.env
+        required: false
     environment:
       PORT: "5005"
     ports:
@@ -62,7 +74,9 @@ services:
     
   rental_service:
     build: ./rental_service
-    env_file: ./rental_service/.env
+    env_file: 
+      - path: ./rental_service/.env
+        required: false
     environment:
       PORT: "5006"
     ports:
