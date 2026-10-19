@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5001;
 
 app.post("/register", async (req, res) => {
     try {
-        const { name, email, password, phone } = req.body || {};
+        const { name, email, password, phone, role = "user" } = req.body || {};
 
         // Validate required fields
         if (
@@ -29,6 +29,13 @@ app.post("/register", async (req, res) => {
         ) {
             return res.status(400).json({
                 message: "Name, email, password and phone are required"
+            });
+        }
+
+        // Validate role
+        if (!["user", "admin"].includes(role)) {
+            return res.status(400).json({
+            message: "Role must be either user or admin"
             });
         }
 
@@ -49,13 +56,13 @@ app.post("/register", async (req, res) => {
         // Hash password before saving
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user with default role
+        // Create user with selected role
         const newUser = await User.create({
             name: name.trim(),
             email: normalizedEmail,
             password: hashedPassword,
             phone: phone.trim(),
-            role: "user"
+            role
         });
 
         return res.status(201).json({
