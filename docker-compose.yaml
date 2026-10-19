@@ -5,14 +5,6 @@ services:
     env_file:
       - path: ./api_gateway/.env
         required: false
-    environment:
-      PORT: "3000"
-      REGISTRATION_SERVICE_URL: http://registration_service:5001
-      LOGIN_SERVICE_URL: http://login_service:5002
-      CAR_SERVICE_URL: http://car_service:5003
-      AVAILABILITY_SERVICE_URL: http://availability_service:5004
-      BOOKING_SERVICE_URL: http://booking_service:5005
-      RENTAL_SERVICE_URL: http://rental_service:5006
     ports:
       - "3001:3000"
     restart: unless-stopped
@@ -22,14 +14,6 @@ services:
     env_file:
       - path: ./api_gateway/.env
         required: false
-    environment:
-      PORT: "3000"
-      REGISTRATION_SERVICE_URL: http://registration_service:5001
-      LOGIN_SERVICE_URL: http://login_service:5002
-      CAR_SERVICE_URL: http://car_service:5003
-      AVAILABILITY_SERVICE_URL: http://availability_service:5004
-      BOOKING_SERVICE_URL: http://booking_service:5005
-      RENTAL_SERVICE_URL: http://rental_service:5006
     ports:
       - "3002:3000"
     restart: unless-stopped
