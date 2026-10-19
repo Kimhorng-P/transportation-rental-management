@@ -87,7 +87,7 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - "5003:80"
+      - "80:80"
     depends_on:
       - car_service_1
       - car_service_2
