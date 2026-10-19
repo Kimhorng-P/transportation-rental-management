@@ -1,21 +1,14 @@
 services:
 
-  api_gateway_1:
+  api_gateway:
     build: ./api_gateway
     env_file:
       - path: ./api_gateway/.env
         required: false
+    environment:
+      PORT: "3000"
     ports:
-      - "3001:3000"
-    restart: unless-stopped
-
-  api_gateway_2:
-    build: ./api_gateway
-    env_file:
-      - path: ./api_gateway/.env
-        required: false
-    ports:
-      - "3002:3000"
+      - "3000:3000"
     restart: unless-stopped
 
   registration_service:
@@ -40,15 +33,22 @@ services:
       - "5002:5002"
     restart: unless-stopped
 
-  car_service:
+  car_service_1:
     build: ./car_service
-    env_file: 
+    env_file:
       - path: ./car_service/.env
         required: false
     environment:
       PORT: "5003"
-    ports:
-      - "5003:5003"
+    restart: unless-stopped
+
+  car_service_2:
+    build: ./car_service
+    env_file:
+      - path: ./car_service/.env
+        required: false
+    environment:
+      PORT: "5003"
     restart: unless-stopped
 
   availability_service:
@@ -87,8 +87,8 @@ services:
   nginx:
     build: ./nginx
     ports:
-      - "80:80"
+      - "5003:80"
     depends_on:
-      - api_gateway_1
-      - api_gateway_2
+      - car_service_1
+      - car_service_2
     restart: unless-stopped
