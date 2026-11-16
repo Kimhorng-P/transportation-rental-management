@@ -1,0 +1,248 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: transportation-rental
+
+---
+# ConfigMap: internal DNS addresses used by the API Gateway.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rental-config
+  namespace: transportation-rental
+data:
+  REGISTRATION_SERVICE_URL: "http://registration-service:5001"
+  LOGIN_SERVICE_URL: "http://login-service:5002"
+  CAR_SERVICE_URL: "http://car-service:5003"
+  AVAILABILITY_SERVICE_URL: "http://availability-service:5004"
+  BOOKING_SERVICE_URL: "http://booking-service:5005"
+  RENTAL_SERVICE_URL: "http://rental-service:5006"
+
+
+---
+# API Gateway: single entry point for backend API calls.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: rental-api_gateway:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+          envFrom:
+            - configMapRef:
+                name: rental-config
+            - secretRef:
+                name: rental-secrets
+
+---
+# Registration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registration-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registration
+  template:
+    metadata:
+      labels:
+        app: registration
+    spec:
+      containers:
+        - name: registration
+          image: rental-registration_service:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5001
+          env:
+            - name: PORT
+              value: "5001"
+          envFrom:
+            - secretRef:
+                name: rental-secrets
+
+---
+# Login
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: login
+  template:
+    metadata:
+      labels:
+        app: login
+    spec:
+      containers:
+        - name: login
+          image: rental-login_service:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5002
+          env:
+            - name: PORT
+              value: "5002"
+          envFrom:
+            - secretRef:
+                name: rental-secrets
+
+---
+# Car, two replicas allow Service-level load balancing.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: car-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: car
+  template:
+    metadata:
+      labels:
+        app: car
+    spec:
+      containers:
+        - name: car
+          image: rental-car_service:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5003
+          env:
+            - name: PORT
+              value: "5003"
+          envFrom:
+            - secretRef:
+                name: rental-secrets
+          # Both containers in this Pod can access /app/logs.
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /app/logs
+        - name: log-reader
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - "touch /app/logs/car.log; tail -n +1 -F /app/logs/car.log"
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /app/logs
+      # emptyDir is shared within a Pod and lost when that Pod is deleted.
+      volumes:
+        - name: shared-logs
+          emptyDir: {}
+
+---
+# Availability
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: availability-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: availability
+  template:
+    metadata:
+      labels:
+        app: availability
+    spec:
+      containers:
+        - name: availability
+          image: rental-availability_service:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5004
+          env:
+            - name: PORT
+              value: "5004"
+          envFrom:
+            - secretRef:
+                name: rental-secrets
+
+---
+# Booking
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking
+  template:
+    metadata:
+      labels:
+        app: booking
+    spec:
+      containers:
+        - name: booking
+          image: rental-booking_service:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5005
+          env:
+            - name: PORT
+              value: "5005"
+          envFrom:
+            - secretRef:
+                name: rental-secrets
+
+---
+# Rental
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rental-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rental
+  template:
+    metadata:
+      labels:
+        app: rental
+    spec:
+      containers:
+        - name: rental
+          image: rental-rental_service:v2.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5006
+          env:
+            - name: PORT
+              value: "5006"
+          envFrom:
+            - secretRef:
+                name: rental-secrets
