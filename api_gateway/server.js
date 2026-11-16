@@ -1,5 +1,7 @@
 const express = require("express");
 const httpProxy = require("http-proxy");
+const fs = require("fs");
+const path = require("path");
 const { authToken } = require("./auth");
 
 require("dotenv").config();
@@ -33,6 +35,32 @@ const CAR_SERVICE =
 const RENTAL_SERVICE =
     process.env.RENTAL_SERVICE_URL ||
     "http://rental_service:5006";
+
+// Shared Kubernetes Volume logging
+const LOG_DIR = "/app/logs";
+const LOG_FILE = path.join(LOG_DIR, "gateway.log");
+
+// Create the log directory if it does not exist
+fs.mkdirSync(LOG_DIR, { recursive: true });
+
+// Automatically record completed API requests
+app.use((req, res, next) => {
+    const method = req.method;
+    const requestPath = req.path;
+
+    res.on("finish", () => {
+        const log =
+            `${new Date().toISOString()} ${method} ${requestPath} ${res.statusCode}\n`;
+
+        fs.appendFile(LOG_FILE, log, (error) => {
+            if (error) {
+                console.error("Log writing error:", error.message);
+            }
+        });
+    });
+
+    next();
+});
 
 
 // Handle proxy connection errors
@@ -96,12 +124,12 @@ app.use("/booking", authToken, (req, res) => {
     });
 });
 
- // Car Service
- // GET /cars
- // GET /cars/:id
- // POST /cars
- // PUT /cars/:id
- // DELETE /cars/:id
+// Car Service
+// GET /cars
+// GET /cars/:id
+// POST /cars
+// PUT /cars/:id
+// DELETE /cars/:id
 
 app.use("/cars", authToken, (req, res) => {
     req.url = "/cars" + req.url;
@@ -127,15 +155,14 @@ app.use("/rentals", authToken, (req, res) => {
 });
 
 
-// Unknown Endpointc
+// Unknown Endpoint
 app.use((req, res) => {
     return res.status(404).json({
         message: "Endpoint not found"
     });
 });
 
-// Start API Gatewac
-
+// Start API Gateway
 app.listen(PORT, "0.0.0.0", () => {
     console.log(
         `API Gateway running on port ${PORT}`

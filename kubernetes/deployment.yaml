@@ -50,6 +50,23 @@ spec:
                 name: rental-config
             - secretRef:
                 name: rental-secrets
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /app/logs
+
+        - name: log-reader
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - "touch /app/logs/gateway.log; tail -n +1 -F /app/logs/gateway.log"
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /app/logs
+
+      volumes:
+        - name: shared-logs
+          emptyDir: {}
+
 
 ---
 # Registration
@@ -140,22 +157,7 @@ spec:
           envFrom:
             - secretRef:
                 name: rental-secrets
-          # Both containers in this Pod can access /app/logs.
-          volumeMounts:
-            - name: shared-logs
-              mountPath: /app/logs
-        - name: log-reader
-          image: busybox:1.36
-          command: ["sh", "-c"]
-          args:
-            - "touch /app/logs/car.log; tail -n +1 -F /app/logs/car.log"
-          volumeMounts:
-            - name: shared-logs
-              mountPath: /app/logs
-      # emptyDir is shared within a Pod and lost when that Pod is deleted.
-      volumes:
-        - name: shared-logs
-          emptyDir: {}
+
 
 ---
 # Availability
@@ -246,3 +248,69 @@ spec:
           envFrom:
             - secretRef:
                 name: rental-secrets
+
+---
+# HTML page for the Documentation Pod
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rental-docs
+  namespace: transportation-rental
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Rental Management Documentation</title>
+    </head>
+    <body>
+      <h1>Transportation Rental Management</h1>
+      <h2>API Documentation</h2>
+      <p>This page is served by the Documentation Pod.</p>
+      <p>NGINX Ingress routes /docs to this service.</p>
+      <p>Business API requests use the API Gateway.</p>
+
+      <h3>API Endpoints</h3>
+      <ul>
+        <li>POST /api/register</li>
+        <li>POST /api/login</li>
+        <li>GET /api/cars</li>
+        <li>GET /api/availability</li>
+        <li>POST /api/booking</li>
+        <li>POST /api/rentals</li>
+      </ul>
+      <p>Protected endpoints require JWT authentication.</p>
+    </body>
+    </html>
+
+---
+# Documentation Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-deployment
+  namespace: transportation-rental
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docs
+  template:
+    metadata:
+      labels:
+        app: docs
+    spec:
+      containers:
+        - name: docs
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: docs-content
+              mountPath: /usr/share/nginx/html/docs
+              readOnly: true
+      volumes:
+        - name: docs-content
+          configMap:
+            name: rental-docs

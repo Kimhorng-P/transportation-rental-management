@@ -103,11 +103,36 @@ spec:
       targetPort: 5006
 
 ---
-# Ingress: forwards external HTTP traffic to the API Gateway.
+# API Ingress: removes /api prefix
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: rental-ingress
+  namespace: transportation-rental
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: rentalhub.com
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 3000
+
+
+---
+# Documentation Ingress: separate route
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rental-docs-ingress
   namespace: transportation-rental
 spec:
   ingressClassName: nginx
@@ -115,10 +140,10 @@ spec:
     - host: rentalhub.com
       http:
         paths:
-          - path: /
+          - path: /docs
             pathType: Prefix
             backend:
               service:
-                name: api-gateway-service
+                name: docs-service
                 port:
-                  number: 3000
+                  number: 8080
